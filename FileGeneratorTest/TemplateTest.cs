@@ -8,23 +8,24 @@ namespace FileGeneratorTest
     [TestFixture]
     public class TemplateTest
     {
-        private ServiceProvider _ServiceProvider { get; set; }
+        private ITemplate<Book> templateService { get; set; }
 
         [SetUp]
         public void Setup()
         {
-            ServiceCollection services = new ServiceCollection();
-            services.AddScoped(typeof(ITemplate<>), typeof(TemplateHandler<>));
-            _ServiceProvider = services.BuildServiceProvider();
+            ServiceProvider _ServiceProvider =
+                new ServiceCollection()
+                .AddScoped(typeof(ITemplate<>), typeof(TemplateHandler<>))
+                .BuildServiceProvider();
+
+            templateService = _ServiceProvider.GetService(typeof(ITemplate<Book>)) as ITemplate<Book>;
         }
 
         [Test]
         public void Must_Mount_Header()
-        {            
-            ITemplate<Book> templateService = _ServiceProvider.GetService(typeof(ITemplate<Book>)) as ITemplate<Book>;
-            
+        {
             string content = templateService.GetHeader();
-            
+
             Assert.AreEqual("Author;Price", content);
         }
 
@@ -32,22 +33,20 @@ namespace FileGeneratorTest
         public void Must_Mount_OneLine()
         {
             Book book = new Book("Malta", 19.99M);
-            ITemplate<Book> templateService = _ServiceProvider.GetService(typeof(ITemplate<Book>)) as ITemplate<Book>;
 
             string line = templateService.GetContent(book);
 
             Assert.AreEqual("Malta;19.99", line);
         }
-        
+
         [Test]
-        public void Must_Mount_TwoLines()
+        public void Must_Mount_EntireCotent()
         {
             IEnumerable<Book> books = new[]
             {
                 new Book("Author_01", 13.75M),
                 new Book("Author_02", 7.19M)
             };
-            ITemplate<Book> templateService = _ServiceProvider.GetService(typeof(ITemplate<Book>)) as ITemplate<Book>;
 
             string content = templateService.GetContent(books);
 
